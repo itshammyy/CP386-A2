@@ -1,1 +1,95 @@
+#include <iostream>
+#include <vector>
+#include <thread>
+#include <stdexcept>
+
+// Multiply a row of matA with matB and store the result in matC
+void matrixMult(const std::vector<std::vector<int>> &matA, const std::vector<std::vector<int>>& matB,
+                 std::vector<int> &matCrow, int row) {
+    for (int col = 0; col < matB[0].size(); ++col) {
+        matCrow[col] = 0;  // Initialize the element to 0
+        for (int m = 0; m < matA[row].size(); ++m) {
+            matCrow[col] += matA[row][m] * matB[m][col];  // Perform dot product
+        }
+    }
+}
+
+int main() {
+    int arow, acol, brow, bcol;
+
+    // Input matrix dimensions for A
+    std::cout << "Enter the dimensions of matrix A (rows and columns): ";
+    if (!(std::cin >> arow >> acol) || arow <= 0 || acol <= 0) {
+        std::cerr << "Invalid input for matrix A. Must be positive." << std::endl;
+        return 1;
+    }
+
+    // Input matrix dimensions for B
+    std::cout << "Enter the dimensions of matrix B (rows and columns): ";
+    if (!(std::cin >> brow >> bcol) || brow <= 0 || bcol <= 0) {
+        std::cerr << "Invalid input for matrix B. Must be positive." << std::endl;
+        return 1;
+    }
+
+    // Error check for Matrix multiplication
+    if (acol != brow) {
+        std::cerr << "Matrix multiplication not possible. Columns of A must equal rows of B." << std::endl;
+        return 1;
+    }
+
+    // Initializing matrices A, B, and C
+    std::vector<std::vector<int>> matA(arow, std::vector<int>(acol));
+    std::vector<std::vector<int>> matB(brow, std::vector<int>(bcol));
+    std::vector<std::vector<int>> matC(arow, std::vector<int>(bcol, 0));
+
+    std::cout << std::endl;
+
+    // Input matrix A
+    std::cout << "Enter elements of matrix A:" << std::endl;
+    for (int i = 0; i < arow; ++i) {
+        for (int j = 0; j < acol; ++j) {
+            if (!(std::cin >> matA[i][j])) {
+                std::cerr << "Invalid input for Matrix A." << std::endl;
+                return 1;
+            }
+        }
+    }
+
+    std::cout << std::endl;
+
+    // Input matrix B
+    std::cout << "Enter elements of matrix B:" << std::endl;
+    for (int i = 0; i < brow; ++i) {
+        for (int j = 0; j < bcol; ++j) {
+            if (!(std::cin >> matB[i][j])) {
+                std::cerr << "Invalid input for Matrix B." << std::endl;
+                return 1;
+            }
+        }
+    }
+
+    std::cout << std::endl;
+
+    // Launch threads for multiplication step
+    std::vector<std::thread> threads;
+    for (int i = 0; i < arow; ++i) {
+        threads.emplace_back(matrixMult, std::cref(matA), std::cref(matB), std::ref(matC[i]), i);
+    }
+
+    // Join threads
+    for (auto &t : threads) {
+        t.join();
+    }
+
+    // Output resulting matrix C
+    std::cout << "Resulting Matrix C:" << std::endl;
+    for (const auto &row : matC) {
+        for (const auto &element : row) {
+            std::cout << element << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    return 0;
+}
 
